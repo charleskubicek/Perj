@@ -24,6 +24,13 @@
   (is (= (remove-largest [5 8 6 5 3 2] 2) [5 5 3 2]))
   )
 
+(def run-result
+  [{:txs [{:url "http://localhost:8080/chapter", :time 129, :status-code 200} {:url "http://localhost:8080/chapter", :time 13, :status-code 200} {:url "http://localhost:8080/chapter", :time 16, :status-code 200} {:url "http://localhost:8080/chapter", :time 14, :status-code 200}], :url "http://localhost:8080/chapter", :rate 4}])
+
+(deftest run-record-from-run-result-test
+  (is (=))
+  )
+
 (deftest run-record-from-run-details-test
   (is (= (run-record-from-run-details 10 10000 200) {:arrival-rate 10 :throughput 20})))
 
