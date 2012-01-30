@@ -146,19 +146,34 @@
 
 ;{:status 200, :content-type "text/html; charset=iso-8859-1", :headers {"date" "Sun, 08 Jan 2012 16:33:52 GMT", "content-type" "text/html; charset=iso-8859-1", "connection" "close", "server" "Jetty(6.1.25)"}, :content-length nil, :character-encoding "iso-8859-1", :body <== []}
 
+(defn wait-until [f]
+  (loop []
+    (if (= (f) false)
+      (do
+        (Thread/sleep 100)
+        (recur)))))
+
+
 (defn run [time rate url]
   (let [start-time (now)
-        completed-transactions (agent [])]
+        completed-transactions (agent [])
+        requests-made (agent 0)]
     (prn "running " url " with rate " rate)
     (loop []
       (if (> (+ start-time time) (now))
         (let [request-time (now)
               request (http-request {:method :get, :url url})]
+          (send requests-made inc)
           (on-success request (fn[r] (request-callback r url request-time completed-transactions)))
           (Thread/sleep (/ 1000.0 (double rate)))
           (recur)
         )
-        (run-result @completed-transactions url rate)))))
+        (do
+          (prn "before sleep requests made: " @requests-made " responses received " (count @completed-transactions))
+          ;(Thread/sleep 2000) ; wait abit for requests to be finished
+          (wait-until (fn[] do((prn @requests-made " " (count @completed-transactions) )(= @requests-made (count @completed-transactions)))))
+          (prn " after sleep requests made: " @requests-made " responses received " (count @completed-transactions))
+          (run-result @completed-transactions url rate))))))
 
 (defn run-spec [spec]
   (let [host (:host spec)
